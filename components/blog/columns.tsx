@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import { format } from "date-fns";
 import { BlogPost } from "@/lib/types/blog";
+import { DEFAULT_LANGUAGE_CODE } from "@/lib/types/languages";
 
 const stripHtml = (html: string) => {
 	if (typeof window === "undefined") return html.replace(/<[^>]*>?/gm, "");
@@ -107,7 +108,7 @@ export const createColumns = (
 		header: "Category",
 		cell: ({ row }: CellContext<BlogPost, unknown>) => (
 			<Badge variant="outline" className="rounded-md">
-				{row.original.category?.name || "Uncategorized"}
+				{row.original.category?.name[DEFAULT_LANGUAGE_CODE] || "Uncategorized"}
 			</Badge>
 		),
 	},

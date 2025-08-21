@@ -1,6 +1,7 @@
 export interface Banner {
 	id: string;
 	imageUrl: Media;
+	isActive: boolean;
 	order: number;
 	createdAt: Date;
 }

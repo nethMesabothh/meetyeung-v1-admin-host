@@ -1,7 +1,10 @@
+export type LocalizedField = Record<string, string>;
+
 export interface Category {
 	id: string;
-	name: string;
-	description?: string | null;
+	name: LocalizedField;
+	description?: LocalizedField | null;
+	isActive: boolean;
 	parentId?: string | null;
 	createdAt: Date;
 }

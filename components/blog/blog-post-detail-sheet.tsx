@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Calendar, Eye, MessageSquare } from "lucide-react";
 import { BlogPost } from "@/lib/types/blog";
 import { Badge } from "../ui/badge";
+import { DEFAULT_LANGUAGE_CODE } from "@/lib/types/languages";
 
 interface BlogPostDetailSheetProps {
 	post: BlogPost | null;
@@ -39,7 +40,7 @@ export function BlogPostDetailSheet({
 				<div className="p-6 space-y-6">
 					<header className="space-y-2">
 						<Badge variant="outline" className="rounded-md w-fit">
-							{post.category?.name}
+							{post.category?.name[DEFAULT_LANGUAGE_CODE]}
 						</Badge>
 						<SheetTitle className="text-3xl !mt-2 font-bold tracking-tight">
 							{post.title}

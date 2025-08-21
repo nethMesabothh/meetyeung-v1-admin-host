@@ -53,17 +53,20 @@ export const mockBanners: Banner[] = [
 		id: "banner_abc_1",
 		order: 1,
 		createdAt: new Date("2025-08-04T11:00:00Z"),
+		isActive: true,
 		imageUrl: mockMedia[1], // Nesting the full Media object
 	},
 	{
 		id: "banner_def_2",
 		order: 2,
+		isActive: true,
 		createdAt: new Date("2025-08-04T12:00:00Z"),
 		imageUrl: mockMedia[2], // Nesting the full Media object
 	},
 	{
 		id: "banner_ghi_3",
 		order: 3,
+		isActive: true,
 		createdAt: new Date("2025-08-04T13:00:00Z"),
 		imageUrl: mockMedia[0], // Nesting the full Media object
 	},

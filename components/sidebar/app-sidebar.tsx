@@ -7,12 +7,14 @@ import {
 	Bell,
 	FileText,
 	FolderOpen,
+	Handshake,
 	Home,
 	Image,
 	MessageSquare,
 	Settings,
 	Upload,
 	Users,
+	Youtube,
 } from "lucide-react";
 
 import {
@@ -24,14 +26,17 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarSeparator,
-	SidebarTrigger,
-	useSidebar,
+	SidebarTrigger, // 1. Import the trigger component
+	useSidebar, // 2. Import the state management hook
 } from "@/components/ui/sidebar";
+import { title } from "process";
 
 const navigation = [
 	{ title: "Dashboard", url: "/", icon: Home },
 	{ title: "Banners", url: "/banners", icon: Image },
+	{ title: "Partners", url: "/partners", icon: Handshake },
 	{ title: "Categories", url: "/categories", icon: FolderOpen },
+	{ title: "Youtube", url: "/videos", icon: Youtube },
 	{ title: "Blog Posts", url: "/blog", icon: FileText },
 	{ title: "Comments", url: "/comments", icon: MessageSquare },
 	{ title: "Media", url: "/media", icon: Upload },
@@ -43,7 +48,7 @@ const navigation = [
 
 export function AppSidebar() {
 	const pathname = usePathname();
-	const { state } = useSidebar();
+	const { state } = useSidebar(); // 3. Get the current state of the sidebar
 
 	return (
 		<Sidebar>
@@ -56,13 +61,15 @@ export function AppSidebar() {
 			<SidebarContent className="p-2 py-2.5">
 				<SidebarMenu>
 					{navigation.map((item) => {
-						const isActive = pathname === item.url;
+						const isActive = pathname.startsWith(item.url) && item.url !== "/";
+						const isDashboardActive = pathname === "/";
+
 						return (
 							<SidebarMenuItem key={item.title} className="py-0.5">
 								<SidebarMenuButton
 									asChild
-									isActive={isActive}
-									tooltip={item.title}
+									isActive={item.url === "/" ? isDashboardActive : isActive}
+									tooltip={item.title} // Tooltip shows automatically when collapsed
 									className="justify-start rounded-sm text-muted-foreground data-[active=true]:bg-primary data-[active=true]:text-primary-foreground"
 								>
 									<Link href={item.url}>
@@ -84,6 +91,7 @@ export function AppSidebar() {
 							JD
 						</span>
 					</div>
+					{/* 5. Conditionally render user info based on the sidebar state */}
 					{state === "expanded" && (
 						<div className="ml-3 min-w-0 flex-1">
 							<p className="truncate text-sm font-semibold">John Doe</p>

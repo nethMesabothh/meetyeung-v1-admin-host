@@ -21,6 +21,7 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { Check, ChevronsUpDown, Calendar as CalendarIcon } from "lucide-react";
 import { Category } from "@/lib/types/category";
+import { DEFAULT_LANGUAGE_CODE } from "@/lib/types/languages";
 
 export function BlogPostSettingsCard({
 	state,
@@ -136,7 +137,9 @@ function CategoryCombobox({
 					className="w-full justify-between"
 				>
 					{value
-						? categories.find((c) => c.id === value)?.name
+						? categories.find((c) => c.id === value)?.name[
+								DEFAULT_LANGUAGE_CODE
+						  ]
 						: "Select category..."}
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
@@ -149,7 +152,7 @@ function CategoryCombobox({
 						{categories.map((category) => (
 							<CommandItem
 								key={category.id}
-								value={category.name}
+								value={category.name[DEFAULT_LANGUAGE_CODE]}
 								onSelect={() => {
 									onChange(category.id);
 									setOpen(false);
@@ -161,7 +164,7 @@ function CategoryCombobox({
 										value === category.id ? "opacity-100" : "opacity-0"
 									)}
 								/>
-								{category.name}
+								{category.name[DEFAULT_LANGUAGE_CODE]}
 							</CommandItem>
 						))}
 					</CommandGroup>
