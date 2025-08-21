@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image"; // Import Next.js Image component
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -22,13 +23,13 @@ import { Video } from "@/lib/types/video";
 import { Category, LocalizedField } from "@/lib/types/category";
 import { MultilingualInput } from "@/components/common/multilingual-input";
 import { DEFAULT_LANGUAGE_CODE } from "@/lib/types/languages";
+import { Play } from "lucide-react"; // Import the Play icon
 
 interface VideoFormDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onSave: (videoData: Partial<Video>) => void;
 	initialData?: Video | null;
-	// 1. Add prop to accept the list of available categories
 	availableCategories: Category[];
 }
 
@@ -37,12 +38,13 @@ export function VideoFormDialog({
 	onOpenChange,
 	onSave,
 	initialData,
-	availableCategories, // 2. Destructure the new prop
+	availableCategories,
 }: VideoFormDialogProps) {
 	const [title, setTitle] = useState<LocalizedField>({});
 	const [description, setDescription] = useState<LocalizedField>({});
 	const [videoId, setVideoId] = useState("");
 	const [category, setCategory] = useState("");
+	const [isPlaying, setIsPlaying] = useState(false);
 
 	useEffect(() => {
 		if (open) {
@@ -58,7 +60,13 @@ export function VideoFormDialog({
 				setCategory("");
 			}
 		}
+		setIsPlaying(false);
 	}, [open, initialData]);
+
+	// 2. Reset the player if the video ID is changed by the user
+	useEffect(() => {
+		setIsPlaying(false);
+	}, [videoId]);
 
 	const handleSave = () => {
 		if (!title[DEFAULT_LANGUAGE_CODE] || !videoId) return;
@@ -92,7 +100,6 @@ export function VideoFormDialog({
 									<SelectValue placeholder="Select a category" />
 								</SelectTrigger>
 								<SelectContent>
-									{/* 3. Map over the availableCategories prop */}
 									{availableCategories.map((cat) => (
 										<SelectItem key={cat.id} value={cat.id}>
 											{cat.name[DEFAULT_LANGUAGE_CODE]}
@@ -101,15 +108,38 @@ export function VideoFormDialog({
 								</SelectContent>
 							</Select>
 						</div>
+
 						{videoId && (
 							<div className="aspect-video bg-muted rounded-lg overflow-hidden">
-								<iframe
-									src={`https://www.youtube.com/embed/${videoId}`}
-									width="100%"
-									height="100%"
-									allowFullScreen
-									title="YouTube Preview"
-								/>
+								{isPlaying ? (
+									<iframe
+										src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+										width="100%"
+										height="100%"
+										allow="autoplay; fullscreen"
+										title="YouTube Preview"
+									/>
+								) : (
+									<button
+										type="button"
+										onClick={() => setIsPlaying(true)}
+										className="relative w-full h-full group"
+										aria-label="Play video preview"
+									>
+										<Image
+											src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
+											alt="Video thumbnail"
+											layout="fill"
+											objectFit="cover"
+										/>
+										<div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
+										<div className="absolute inset-0 flex items-center justify-center">
+											<div className="bg-white/90 rounded-full flex items-center justify-center shadow-md w-14 h-14 group-hover:scale-110 transition-transform">
+												<Play className="text-primary ml-1 w-6 h-6" />
+											</div>
+										</div>
+									</button>
+								)}
 							</div>
 						)}
 					</div>

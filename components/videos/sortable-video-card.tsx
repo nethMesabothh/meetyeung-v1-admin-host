@@ -21,6 +21,7 @@ interface SortableVideoCardProps {
 	onDelete: (id: string) => void;
 	onEdit: (id: string) => void;
 	onToggleActive: (id: string) => void;
+	onPlay: () => void;
 	isActive: boolean;
 	imageUrl: string;
 	title: string;
@@ -37,6 +38,7 @@ export function SortableVideoCard({
 	onDelete,
 	onEdit,
 	onToggleActive,
+	onPlay,
 	isActive,
 	imageUrl,
 	title,
@@ -68,23 +70,29 @@ export function SortableVideoCard({
 			)}
 		>
 			<div className="relative aspect-video overflow-hidden">
-				<Image
-					src={imageUrl || FALLBACK_IMAGE_URL}
-					alt={title}
-					layout="fill"
-					objectFit="cover"
-					className="group-hover:scale-105 transition-transform duration-300"
-				/>
-				<div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
-				<motion.div
-					className="absolute inset-0 flex items-center justify-center pointer-events-none"
-					whileHover={{ scale: 1.1 }}
+				<button
+					type="button"
+					onClick={onPlay}
+					className="absolute inset-0 w-full h-full cursor-pointer z-10"
+					aria-label={`Play video: ${title}`}
 				>
-					<div className="bg-white/90 rounded-full flex items-center justify-center shadow-md w-12 h-12">
-						<Play className="text-primary ml-1 w-5 h-5" />
-					</div>
-				</motion.div>
-
+					<Image
+						src={imageUrl}
+						alt={title}
+						layout="fill"
+						objectFit="cover"
+						className="group-hover:scale-105 transition-transform duration-300"
+					/>
+					<div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
+					<motion.div
+						className="absolute inset-0 flex items-center justify-center pointer-events-none"
+						whileHover={{ scale: 1.1 }}
+					>
+						<div className="bg-white/90 rounded-full flex items-center justify-center shadow-md w-12 h-12">
+							<Play className="text-primary ml-1 w-5 h-5" />
+						</div>
+					</motion.div>
+				</button>
 				<div className="absolute top-2 right-2 z-20 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
 					<div
 						{...attributes}
@@ -112,25 +120,17 @@ export function SortableVideoCard({
 							</Button>
 						</AlertDialogTrigger>
 						<AlertDialogContent>
-							{/* ... Your Delete Dialog Content ... */}
+							{/* ... Delete Dialog ... */}
 						</AlertDialogContent>
 					</AlertDialog>
 				</div>
-
-				{duration && (
-					<div className="absolute bottom-2 right-2 bg-black/80 text-white px-2 py-1 rounded text-xs pointer-events-none">
-						{duration}
-					</div>
-				)}
-				<div className="absolute bottom-2 left-2 z-10">
+				<div className="absolute bottom-2 left-2 z-20">
 					<Switch
-						id={`active-${id}`}
 						checked={isActive}
 						onCheckedChange={() => onToggleActive(id)}
 					/>
 				</div>
 			</div>
-
 			<CardContent className="p-4">
 				{category && <Badge variant="secondary">{category}</Badge>}
 				<h3 className="text-lg font-bold my-2 line-clamp-1">{title}</h3>

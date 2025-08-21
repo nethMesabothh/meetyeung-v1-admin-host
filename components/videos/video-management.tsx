@@ -10,6 +10,7 @@ import { VideoFormDialog } from "./video-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { mockCategories } from "@/lib/data/category";
+import { VideoPlayerDialog } from "./video-player-dialog";
 
 export function VideoManagement() {
 	const [videos, setVideos] = useState<Video[]>(mockVideos);
@@ -17,10 +18,15 @@ export function VideoManagement() {
 		open: boolean;
 		video?: Video | null;
 	}>({ open: false });
+	const [playingVideo, setPlayingVideo] = useState<Video | null>(null);
 
 	const availableCategories = useMemo(() => {
 		return mockCategories.filter((cat) => !cat.parentId);
 	}, []);
+
+	const handleVideoClick = (video: Video) => {
+		setDialogState({ open: true, video: video });
+	};
 
 	const handleSave = (data: Partial<Video>) => {
 		if (data.id) {
@@ -35,8 +41,10 @@ export function VideoManagement() {
 			setVideos([...videos, newVideo]);
 		}
 	};
+
 	const handleDelete = (id: string) =>
 		setVideos(videos.filter((v) => v.id !== id));
+
 	const handleToggleActive = (id: string) =>
 		setVideos(
 			videos.map((v) => (v.id === id ? { ...v, isActive: !v.isActive } : v))
@@ -76,16 +84,25 @@ export function VideoManagement() {
 								DEFAULT_LANGUAGE_CODE
 							]
 						}
+						onPlay={() => setPlayingVideo(video)}
 						date={video.date}
 					/>
 				)}
 			/>
+
 			<VideoFormDialog
 				open={dialogState.open}
 				onOpenChange={(open) => setDialogState({ ...dialogState, open })}
 				onSave={handleSave}
 				initialData={dialogState.video}
 				availableCategories={availableCategories}
+			/>
+
+			<VideoPlayerDialog
+				open={!!playingVideo}
+				onOpenChange={(open) => !open && setPlayingVideo(null)}
+				title={playingVideo?.title[DEFAULT_LANGUAGE_CODE]}
+				videoId={playingVideo?.videoId}
 			/>
 		</>
 	);
