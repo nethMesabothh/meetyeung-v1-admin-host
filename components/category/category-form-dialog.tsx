@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -20,7 +20,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, AlertCircle, Info } from "lucide-react";
-import { Category, LocalizedField } from "@/lib/types/category";
+import type { Category, LocalizedField } from "@/lib/types/category";
 import { DEFAULT_LANGUAGE_CODE } from "@/lib/types/languages";
 import { MultilingualInput } from "@/components/common/multilingual-input";
 
@@ -134,7 +134,6 @@ export function CategoryFormDialog({
 		setIsSaving(true);
 		setErrors({});
 
-		console.log("Initial the data " + initialData);
 		try {
 			await onSave({
 				id: initialData?.id,
@@ -173,26 +172,28 @@ export function CategoryFormDialog({
 		onOpenChange(false);
 	}, [hasUnsavedChanges, onOpenChange]);
 
-	// Filter available parents (exclude self and descendants)
 	const filteredParents = useMemo(() => {
-		if (!isEditMode) return availableParents;
+		let parents = availableParents.filter((cat) => !cat.parentId); // Only top-level categories
 
-		// Exclude self and any descendants
-		const excludeIds = new Set([initialData!.id]);
+		if (isEditMode) {
+			// Exclude self and any descendants
+			const excludeIds = new Set([initialData!.id]);
 
-		// Find all descendants recursively
-		const findDescendants = (parentId: string) => {
-			availableParents.forEach((cat) => {
-				if (cat.parentId === parentId && !excludeIds.has(cat.id)) {
-					excludeIds.add(cat.id);
-					findDescendants(cat.id);
-				}
-			});
-		};
+			// Find all descendants recursively
+			const findDescendants = (parentId: string) => {
+				availableParents.forEach((cat) => {
+					if (cat.parentId === parentId && !excludeIds.has(cat.id)) {
+						excludeIds.add(cat.id);
+						findDescendants(cat.id);
+					}
+				});
+			};
 
-		findDescendants(initialData!.id);
+			findDescendants(initialData!.id);
+			parents = parents.filter((cat) => !excludeIds.has(cat.id));
+		}
 
-		return availableParents.filter((cat) => !excludeIds.has(cat.id));
+		return parents;
 	}, [availableParents, isEditMode, initialData]);
 
 	// Get parent category info
@@ -223,6 +224,15 @@ export function CategoryFormDialog({
 						</Alert>
 					)}
 
+					<Alert>
+						<Info className="h-4 w-4" />
+						<AlertDescription>
+							Categories support a maximum of 2 levels: Parent categories and
+							their subcategories. Subcategories cannot have their own
+							subcategories.
+						</AlertDescription>
+					</Alert>
+
 					{/* Category Name */}
 					<div className="space-y-2">
 						<MultilingualInput
@@ -230,8 +240,6 @@ export function CategoryFormDialog({
 							value={name}
 							onChange={setName}
 							placeholder="e.g., Software Development"
-							// error={errors.name}
-							// required
 						/>
 					</div>
 
@@ -243,7 +251,6 @@ export function CategoryFormDialog({
 							onChange={setDescription}
 							placeholder="A short summary of this category"
 							as="textarea"
-							// rows={3}
 						/>
 					</div>
 
@@ -272,11 +279,9 @@ export function CategoryFormDialog({
 												{parent.name[DEFAULT_LANGUAGE_CODE] ||
 													`Category #${parent.id}`}
 											</span>
-											{parent.parentId && (
-												<Badge variant="secondary" className="text-xs">
-													Sub
-												</Badge>
-											)}
+											<Badge variant="secondary" className="text-xs">
+												Parent
+											</Badge>
 										</div>
 									</SelectItem>
 								))}
@@ -288,8 +293,9 @@ export function CategoryFormDialog({
 							<Alert>
 								<Info className="h-4 w-4" />
 								<AlertDescription>
-									This category will be created under "
-									{selectedParent.name[DEFAULT_LANGUAGE_CODE]}"
+									This category will be created as a subcategory under "
+									{selectedParent.name[DEFAULT_LANGUAGE_CODE]}". It will not be
+									able to have its own subcategories.
 								</AlertDescription>
 							</Alert>
 						)}
@@ -311,6 +317,11 @@ export function CategoryFormDialog({
 								<span className="font-medium text-foreground">
 									{name[DEFAULT_LANGUAGE_CODE] || "New Category"}
 								</span>
+								{selectedParent && (
+									<Badge variant="outline" className="ml-2 text-xs">
+										Subcategory (Level 2)
+									</Badge>
+								)}
 							</div>
 						</div>
 					)}

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useCallback, memo } from "react";
-import { Category, CategoryNode } from "@/lib/types/category";
+import { useState, useCallback, memo } from "react";
+import type { CategoryNode } from "@/lib/types/category";
 import { Button } from "@/components/ui/button";
 import {
 	AlertDialog,
@@ -29,8 +29,7 @@ import {
 	Eye,
 	EyeOff,
 } from "lucide-react";
-import { DEFAULT_LANGUAGE_CODE } from "@/lib/types/languages";
-import { cn } from "@/lib/utils";
+import { DEFAULT_LANGUAGE_CODE, LanguageCode } from "@/lib/types/languages";
 import { Badge } from "@/components/ui/badge";
 
 interface CategoryTreeItemProps {
@@ -40,6 +39,8 @@ interface CategoryTreeItemProps {
 	onAddSubCategory?: (parentId: string) => void;
 	onToggleVisibility?: (id: string) => void;
 	onDuplicate?: (category: CategoryNode) => void;
+	level?: number;
+	currentLanguage: LanguageCode;
 }
 
 export const CategoryTreeItem = memo<CategoryTreeItemProps>(
@@ -50,14 +51,20 @@ export const CategoryTreeItem = memo<CategoryTreeItemProps>(
 		onAddSubCategory,
 		onToggleVisibility,
 		onDuplicate,
+		level = 0,
+		currentLanguage,
 	}) => {
 		const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 		const [isLoading, setIsLoading] = useState(false);
 
 		const displayName =
-			category.name[DEFAULT_LANGUAGE_CODE] || `Category #${category.id}`;
+			category.name[currentLanguage] ||
+			category.name[DEFAULT_LANGUAGE_CODE] ||
+			`Category #${category.id}`;
 		const displayDescription =
-			category.description?.[DEFAULT_LANGUAGE_CODE] || "";
+			category.description?.[currentLanguage] ||
+			category.description?.[DEFAULT_LANGUAGE_CODE] ||
+			"";
 
 		// Count subcategories recursively
 		const subcategoryCount = category.subCategories?.length || 0;
@@ -66,6 +73,8 @@ export const CategoryTreeItem = memo<CategoryTreeItemProps>(
 				(count, sub) => count + 1 + (sub.subCategories?.length || 0),
 				0
 			) || 0;
+
+		const canAddSubCategory = level < 1; // Only allow subcategories for top-level categories
 
 		// Memoized handlers
 		const handleEdit = useCallback(() => {
@@ -83,8 +92,10 @@ export const CategoryTreeItem = memo<CategoryTreeItemProps>(
 		}, [onDelete, category.id]);
 
 		const handleAddSubCategory = useCallback(() => {
-			onAddSubCategory?.(category.id);
-		}, [onAddSubCategory, category.id]);
+			if (canAddSubCategory) {
+				onAddSubCategory?.(category.id);
+			}
+		}, [onAddSubCategory, category.id, canAddSubCategory]);
 
 		const handleToggleVisibility = useCallback(() => {
 			onToggleVisibility?.(category.id);
@@ -96,104 +107,132 @@ export const CategoryTreeItem = memo<CategoryTreeItemProps>(
 
 		return (
 			<>
-				<div className="group flex w-full items-center gap-3 min-h-[2.5rem]">
-					{/* Main Content */}
+				<div className="group flex w-full items-center gap-4 min-h-[3rem]">
 					<div className="flex-1 min-w-0 space-y-1">
-						<div className="flex items-center gap-2">
-							<h4 className="font-medium text-sm truncate leading-tight">
+						<div className="flex items-center gap-3">
+							<h4 className="font-semibold text-base truncate leading-tight text-foreground">
 								{displayName}
 							</h4>
 
-							{/* Status Badges */}
-							<div className="flex items-center gap-1">
+							<div className="flex items-center gap-2">
 								{subcategoryCount > 0 && (
-									<Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+									<Badge
+										variant="secondary"
+										className="text-xs px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+									>
 										{subcategoryCount} sub
 									</Badge>
 								)}
 								{category.isActive === false && (
 									<Badge
 										variant="outline"
-										className="text-xs px-1.5 py-0.5 text-muted-foreground"
+										className="text-xs px-2 py-1 text-muted-foreground border-muted-foreground/30"
 									>
 										Hidden
+									</Badge>
+								)}
+								{level > 0 && (
+									<Badge
+										variant="outline"
+										className="text-xs px-2 py-1 text-muted-foreground"
+									>
+										Level {level + 1}
 									</Badge>
 								)}
 							</div>
 						</div>
 
 						{displayDescription && (
-							<p className="text-xs text-muted-foreground truncate leading-tight">
+							<p className="text-sm text-muted-foreground truncate leading-tight max-w-md">
 								{displayDescription}
 							</p>
 						)}
 					</div>
 
-					{/* Action Buttons */}
-					<div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-						{/* Quick Actions */}
-						<div className="flex items-center mr-1">
-							<Button
-								variant="ghost"
-								size="sm"
-								className="h-7 w-7 p-0"
-								title="Add subcategory"
-								onClick={handleAddSubCategory}
-							>
-								<PlusCircle className="h-3.5 w-3.5 text-muted-foreground" />
-							</Button>
+					<div className="flex items-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+						<div className="flex items-center gap-1 mr-2">
+							{canAddSubCategory && (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+									title="Add subcategory"
+									onClick={handleAddSubCategory}
+								>
+									<PlusCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+								</Button>
+							)}
 
 							<Button
 								variant="ghost"
 								size="sm"
-								className="h-7 w-7 p-0"
+								className="h-8 w-8 p-0 hover:bg-green-100 dark:hover:bg-green-900/30"
 								title="Edit category"
 								onClick={handleEdit}
 							>
-								<Edit className="h-3.5 w-3.5 text-muted-foreground" />
+								<Edit className="h-4 w-4 text-green-600 dark:text-green-400" />
 							</Button>
 						</div>
 
-						{/* More Actions Dropdown */}
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button
 									variant="ghost"
 									size="sm"
-									className="h-7 w-7 p-0"
+									className="h-8 w-8 p-0 hover:bg-muted"
 									title="More actions"
 								>
-									<MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+									<MoreHorizontal className="h-4 w-4 text-muted-foreground" />
 								</Button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-48">
-								<DropdownMenuItem onClick={handleEdit}>
-									<Edit className="h-4 w-4 mr-2" />
+							<DropdownMenuContent align="end" className="w-52">
+								<DropdownMenuItem onClick={handleEdit} className="gap-3">
+									<Edit className="h-4 w-4" />
 									Edit Category
 								</DropdownMenuItem>
 
-								<DropdownMenuItem onClick={handleAddSubCategory}>
-									<PlusCircle className="h-4 w-4 mr-2" />
-									Add Subcategory
-								</DropdownMenuItem>
+								{canAddSubCategory && (
+									<DropdownMenuItem
+										onClick={handleAddSubCategory}
+										className="gap-3"
+									>
+										<PlusCircle className="h-4 w-4" />
+										Add Subcategory
+									</DropdownMenuItem>
+								)}
+
+								{!canAddSubCategory && (
+									<DropdownMenuItem disabled className="gap-3 opacity-50">
+										<PlusCircle className="h-4 w-4" />
+										<div className="flex flex-col">
+											<span>Add Subcategory</span>
+											<span className="text-xs text-muted-foreground">
+												Max depth reached
+											</span>
+										</div>
+									</DropdownMenuItem>
+								)}
 
 								{onDuplicate && (
-									<DropdownMenuItem onClick={handleDuplicate}>
-										<Copy className="h-4 w-4 mr-2" />
+									<DropdownMenuItem onClick={handleDuplicate} className="gap-3">
+										<Copy className="h-4 w-4" />
 										Duplicate
 									</DropdownMenuItem>
 								)}
 
 								{onToggleVisibility && (
-									<DropdownMenuItem onClick={handleToggleVisibility}>
+									<DropdownMenuItem
+										onClick={handleToggleVisibility}
+										className="gap-3"
+									>
 										{category.isActive === false ? (
 											<>
-												<Eye className="h-4 w-4 mr-2" />
+												<Eye className="h-4 w-4" />
 												Show Category
 											</>
 										) : (
 											<>
-												<EyeOff className="h-4 w-4 mr-2" />
+												<EyeOff className="h-4 w-4" />
 												Hide Category
 											</>
 										)}
@@ -204,9 +243,9 @@ export const CategoryTreeItem = memo<CategoryTreeItemProps>(
 
 								<DropdownMenuItem
 									onClick={() => setShowDeleteDialog(true)}
-									className="text-destructive focus:text-destructive"
+									className="text-destructive focus:text-destructive gap-3"
 								>
-									<Trash2 className="h-4 w-4 mr-2" />
+									<Trash2 className="h-4 w-4" />
 									Delete Category
 								</DropdownMenuItem>
 							</DropdownMenuContent>

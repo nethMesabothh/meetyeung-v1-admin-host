@@ -1,6 +1,5 @@
 "use client";
 
-import type React from "react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -8,32 +7,31 @@ import {
 	DEFAULT_LANGUAGE_CODE,
 } from "@/lib/types/languages";
 import type { LocalizedField } from "@/lib/types/category";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Globe, Check } from "lucide-react";
+import { RichTextEditor } from "./rich-text-editor";
 
-interface MultilingualInputProps {
+interface MultilingualRichTextEditorProps {
 	value: LocalizedField;
 	onChange: (value: LocalizedField) => void;
 	label: string;
 	placeholder?: string;
-	as?: "input" | "textarea";
 	errors?: Record<string, string>;
+	className?: string;
 	activeLanguage?: string;
 	onLanguageChange?: (language: string) => void;
 }
 
-export function MultilingualInput({
+export function MultilingualRichTextEditor({
 	value,
 	onChange,
 	label,
 	placeholder,
-	as = "input",
 	errors,
+	className,
 	activeLanguage,
 	onLanguageChange,
-}: MultilingualInputProps) {
+}: MultilingualRichTextEditorProps) {
 	const [activeLang, setActiveLang] = useState(DEFAULT_LANGUAGE_CODE);
 
 	useEffect(() => {
@@ -49,13 +47,10 @@ export function MultilingualInput({
 		}
 	};
 
-	const handleInputChange = (
-		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-	) => {
-		onChange({ ...value, [activeLang]: e.target.value });
+	const handleContentChange = (content: string) => {
+		onChange({ ...value, [activeLang]: content });
 	};
 
-	const InputComponent = as === "textarea" ? Textarea : Input;
 	const activeError = errors?.[activeLang];
 
 	const getLanguageStatus = (langCode: string) => {
@@ -65,12 +60,13 @@ export function MultilingualInput({
 	};
 
 	return (
-		<div className="space-y-3">
+		<div className={cn("space-y-3", className)}>
 			<div className="flex items-center gap-2">
 				<Globe className="h-4 w-4 text-muted-foreground" />
 				<Label className="text-sm font-medium">{label}</Label>
 			</div>
 
+			{/* Language tabs */}
 			<div className="relative">
 				<div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg border">
 					{SUPPORTED_LANGUAGES.map((lang) => {
@@ -113,18 +109,16 @@ export function MultilingualInput({
 				</div>
 			</div>
 
+			{/* Rich text editor */}
 			<div className="space-y-2">
-				<InputComponent
-					value={value[activeLang] || ""}
-					onChange={handleInputChange}
-					placeholder={`${placeholder || "Enter value"} in ${
+				<RichTextEditor
+					key={activeLang} // Force re-render when language changes
+					content={value[activeLang] || ""}
+					onChange={handleContentChange}
+					placeholder={`${placeholder || "Enter content"} in ${
 						SUPPORTED_LANGUAGES.find((l) => l.code === activeLang)?.nativeName
 					}`}
-					className={cn(
-						"transition-colors",
-						activeError && "border-destructive focus-visible:ring-destructive",
-						as === "textarea" && "min-h-[100px] resize-y"
-					)}
+					className={cn(activeError && "border-destructive")}
 				/>
 
 				{activeError && (
@@ -142,9 +136,6 @@ export function MultilingualInput({
 						}{" "}
 						of {SUPPORTED_LANGUAGES.length} languages completed
 					</span>
-					{value[activeLang] && (
-						<span>{value[activeLang].length} characters</span>
-					)}
 				</div>
 			</div>
 		</div>

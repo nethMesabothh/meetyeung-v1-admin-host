@@ -38,12 +38,12 @@ const navigation = [
 	{ title: "Categories", url: "/categories", icon: FolderOpen },
 	{ title: "Youtube", url: "/videos", icon: Youtube },
 	{ title: "Blog Posts", url: "/blog", icon: FileText },
-	{ title: "Comments", url: "/comments", icon: MessageSquare },
-	{ title: "Media", url: "/media", icon: Upload },
-	{ title: "Users", url: "/users", icon: Users },
-	{ title: "Analytics", url: "/analytics", icon: BarChart3 },
-	{ title: "Notifications", url: "/notifications", icon: Bell },
-	{ title: "Settings", url: "/settings", icon: Settings },
+	// { title: "Comments", url: "/comments", icon: MessageSquare },
+	// { title: "Media", url: "/media", icon: Upload },
+	// { title: "Users", url: "/users", icon: Users },
+	// { title: "Analytics", url: "/analytics", icon: BarChart3 },
+	// { title: "Notifications", url: "/notifications", icon: Bell },
+	// { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {

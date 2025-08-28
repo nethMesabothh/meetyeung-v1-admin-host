@@ -107,3 +107,130 @@ export const mockCategories: Category[] = [
 		createdAt: new Date("2024-01-20"),
 	},
 ];
+
+const STORAGE_KEY = "categories";
+
+export class CategoryStorage {
+	static getAll(): Category[] {
+		if (typeof window === "undefined") return mockCategories;
+
+		try {
+			const stored = localStorage.getItem(STORAGE_KEY);
+			if (!stored) {
+				// Initialize with mock data
+				this.saveAll(mockCategories);
+				return mockCategories;
+			}
+
+			const categories = JSON.parse(stored);
+			// Convert date strings back to Date objects
+			return categories.map((cat: any) => ({
+				...cat,
+				createdAt: new Date(cat.createdAt),
+				updatedAt: cat.updatedAt ? new Date(cat.updatedAt) : undefined,
+			}));
+		} catch (error) {
+			console.error("Error loading categories:", error);
+			return mockCategories;
+		}
+	}
+
+	static saveAll(categories: Category[]): void {
+		if (typeof window === "undefined") return;
+
+		try {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
+		} catch (error) {
+			console.error("Error saving categories:", error);
+		}
+	}
+
+	static getById(id: string): Category | undefined {
+		return this.getAll().find((cat) => cat.id === id);
+	}
+
+	static create(category: Omit<Category, "id" | "createdAt">): Category {
+		const newCategory: Category = {
+			...category,
+			id: `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+			createdAt: new Date(),
+		};
+
+		const categories = this.getAll();
+		categories.push(newCategory);
+		this.saveAll(categories);
+
+		return newCategory;
+	}
+
+	static update(
+		id: string,
+		updates: Partial<Omit<Category, "id" | "createdAt">>
+	): Category | null {
+		const categories = this.getAll();
+		const index = categories.findIndex((cat) => cat.id === id);
+
+		if (index === -1) return null;
+
+		const updatedCategory = {
+			...categories[index],
+			...updates,
+			updatedAt: new Date(),
+		};
+
+		categories[index] = updatedCategory;
+		this.saveAll(categories);
+
+		return updatedCategory;
+	}
+
+	static delete(id: string): boolean {
+		const categories = this.getAll();
+		const initialLength = categories.length;
+
+		// Remove the category and any children
+		const filtered = categories.filter(
+			(cat) => cat.id !== id && cat.parentId !== id
+		);
+
+		if (filtered.length !== initialLength) {
+			this.saveAll(filtered);
+			return true;
+		}
+
+		return false;
+	}
+
+	static getParentCategories(): Category[] {
+		return this.getAll().filter((cat) => !cat.parentId);
+	}
+
+	static getChildCategories(parentId: string): Category[] {
+		return this.getAll().filter((cat) => cat.parentId === parentId);
+	}
+
+	static getCategoryTree(): Category[] {
+		const categories = this.getAll();
+		const parentCategories = categories.filter((cat) => !cat.parentId);
+
+		return parentCategories.map((parent) => ({
+			...parent,
+			children: categories.filter((cat) => cat.parentId === parent.id),
+		}));
+	}
+
+	static getStats() {
+		const categories = this.getAll();
+		const activeCategories = categories.filter((cat) => cat.isActive);
+		const parentCategories = categories.filter((cat) => !cat.parentId);
+		const childCategories = categories.filter((cat) => cat.parentId);
+
+		return {
+			total: categories.length,
+			active: activeCategories.length,
+			inactive: categories.length - activeCategories.length,
+			parents: parentCategories.length,
+			children: childCategories.length,
+		};
+	}
+}
